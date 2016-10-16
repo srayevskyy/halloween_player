@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 func CheckError(message string, err error) {
@@ -21,6 +22,7 @@ func main() {
 	resource_path := "/home/pi/Halloween/resources/"
 	resource_extension := "wav"
 	sensor_pin := 23
+	sleep_interval := 100 * time.Millisecond
 
 	// file resource init
 	files, err := filepath.Glob(resource_path + "/*" + resource_extension)
@@ -38,27 +40,48 @@ func main() {
 
 	btn, err := embd.NewDigitalPin(sensor_pin)
 	CheckError(fmt.Sprintf("Error wile accessing GPIO pin %d", sensor_pin), err)
-	defer btn.Close()
 
 	err = btn.SetDirection(embd.In)
 	CheckError(fmt.Sprintf("Error setting mode for GPIO pin %d", sensor_pin), err)
+	defer btn.Close()
 
 	btn.ActiveLow(false)
 
-	quit := make(chan interface{})
+	for {
 
-	log.Printf("Waiting for sensor to trigger...")
+		state, _ := btn.Read()
+		log.Printf("Sensor state: %d", state)
 
-	err = btn.Watch(embd.EdgeBoth,
-		func(btn embd.DigitalPin) {
-			quit <- btn
-		})
-	CheckError("Error wile watching for sensor to trigger", err)
+		if state == 1 {
+			log.Printf("Waiting for sensor to calm down...")
+			for state == 1 {
+				state, _ = btn.Read()
+				if state == 1 {
+					time.Sleep(sleep_interval)
+				}
+			}
+			log.Printf("Sensor is calm.")
+		}
 
-	log.Printf("Sensor %v has been triggered.\n", <-quit)
+		// additional check whether the sensor is calm
+		state, _ = btn.Read()
+		if state == 0 {
+			// log.Printf("Sensor state before second loop: %d", state)
 
-	cmd := exec.Command("omxplayer", files[rand.Intn(len(files))])
-	err = cmd.Run()
-	CheckError("Cannot play audio file", err)
+			log.Printf("Waiting for sensor to trigger...")
 
+			for state == 0 {
+				state, _ = btn.Read()
+				if state == 0 {
+					time.Sleep(sleep_interval)
+				}
+			}
+
+			log.Printf("Motion sensor has been triggered.")
+
+			cmd := exec.Command("omxplayer", files[rand.Intn(len(files))])
+			err = cmd.Run()
+			CheckError("Cannot play audio file", err)
+		}
+	}
 }
