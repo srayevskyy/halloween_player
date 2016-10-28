@@ -21,7 +21,7 @@ func CheckError(message string, err error) {
 func main() {
 	resource_path := "/home/pi/Halloween/resources/"
 	resource_extension := "wav"
-	sensor_pin := 23
+	sensor_pin := 21
 	sleep_interval := 100 * time.Millisecond
 
 	// file resource init
