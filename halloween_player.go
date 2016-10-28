@@ -77,9 +77,9 @@ func main() {
 				}
 			}
 
-			log.Printf("Motion sensor has been triggered.")
-
-			cmd := exec.Command("omxplayer", files[rand.Intn(len(files))])
+			file_to_play := files[rand.Intn(len(files))]
+			log.Printf("Motion sensor has been triggered, playing scary sound %s", file_to_play)
+			cmd := exec.Command("omxplayer", file_to_play)
 			err = cmd.Run()
 			CheckError("Cannot play audio file", err)
 		}
