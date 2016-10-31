@@ -11,4 +11,8 @@ if ps axu | grep --silent "[h]alloween_player.go"; then
 	exit 0
 fi
 
+cd /home/pi/halloween_player
+
+echo "Starting halloween player"
+
 go run halloween_player.go
