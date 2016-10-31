@@ -35,7 +35,7 @@ func main() {
 	resource_extension := "wav"
 	sensor_pin := 21
 	sleep_interval := 100 * time.Millisecond
-	sound_probability_percent := 30
+	sound_probability_percent := 10
 
 	// file resource init
 	files, err := filepath.Glob(resource_path + "/*" + resource_extension)
