@@ -35,6 +35,7 @@ func main() {
 	resource_extension := "wav"
 	sensor_pin := 21
 	sleep_interval := 100 * time.Millisecond
+	sound_probability_percent := 30
 
 	// file resource init
 	files, err := filepath.Glob(resource_path + "/*" + resource_extension)
@@ -86,15 +87,21 @@ func main() {
 				}
 			}
 
-			nBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(files))))
-			if err != nil {
-				log.Panicf("%v", err)
+			nBig, err := rand.Int(rand.Reader, big.NewInt(100))
+			CheckError("Error generating random number for scary sound probability", err)
+			log.Printf("Generated number for sound probability: %d", nBig.Int64())
+			if nBig.Int64() < int64(sound_probability_percent) {
+				log.Printf("OK, let's play some scary sound")
+				nBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(files))))
+				CheckError("Error generating random number of scary sound", err)
+				file_to_play := files[nBig.Int64()]
+				log.Printf("Motion sensor has been triggered, playing scary sound %s", file_to_play)
+				cmd := exec.Command("omxplayer", file_to_play)
+				err = cmd.Run()
+				CheckError("Cannot play audio file", err)
+			} else {
+				log.Printf("NO, let's not scare anyone this time")
 			}
-			file_to_play := files[nBig.Int64()]
-			log.Printf("Motion sensor has been triggered, playing scary sound %s", file_to_play)
-			cmd := exec.Command("omxplayer", file_to_play)
-			err = cmd.Run()
-			CheckError("Cannot play audio file", err)
 		}
 	}
 }
