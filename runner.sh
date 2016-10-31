@@ -13,6 +13,8 @@ fi
 
 cd /home/pi/halloween_player
 
-echo "Starting halloween player"
+# enable GPIO
+sudo echo "1" > /sys/class/gpio/export 2>&1 || true
 
+echo "Starting halloween player"
 go run halloween_player.go
