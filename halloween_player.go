@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/kidoman/embd"
 	_ "github.com/kidoman/embd/host/rpi" // This loads the RPi driver
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"math/rand"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -19,7 +21,16 @@ func CheckError(message string, err error) {
 }
 
 func main() {
-	resource_path := "/home/pi/Halloween/resources/"
+
+	log.SetOutput(&lumberjack.Logger{
+		Filename:   os.Getenv("HOME") + "/halloween_player/halloween_player.log",
+		MaxSize:    10, // megabytes
+		MaxBackups: 20, // number of logfiles to keep
+		MaxAge:     1,  // days to keep logfiles, wins over MaxBackups
+		LocalTime:  true,
+	})
+
+	resource_path := os.Getenv("HOME") + "/Halloween/resources/"
 	resource_extension := "wav"
 	sensor_pin := 21
 	sleep_interval := 100 * time.Millisecond
