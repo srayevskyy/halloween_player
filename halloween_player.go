@@ -1,13 +1,14 @@
 package main
 
 import (
+	"crypto/rand"
 	"flag"
 	"fmt"
 	"github.com/kidoman/embd"
 	_ "github.com/kidoman/embd/host/rpi" // This loads the RPi driver
 	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
-	"math/rand"
+	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -39,9 +40,6 @@ func main() {
 	files, err := filepath.Glob(resource_path + "/*" + resource_extension)
 	CheckError("Error wile scanning resource directory", err)
 	log.Printf("Found %d resource file(s) in %s", len(files), resource_path)
-
-	// random number generator init
-	rand.Seed(42)
 
 	// GPIO init
 	flag.Parse()
@@ -88,7 +86,11 @@ func main() {
 				}
 			}
 
-			file_to_play := files[rand.Intn(len(files))]
+			nBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(files))))
+			if err != nil {
+				log.Panicf("%v", err)
+			}
+			file_to_play := files[nBig.Int64()]
 			log.Printf("Motion sensor has been triggered, playing scary sound %s", file_to_play)
 			cmd := exec.Command("omxplayer", file_to_play)
 			err = cmd.Run()
